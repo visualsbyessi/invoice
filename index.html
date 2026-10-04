@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invoice Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Anton&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1c2b2a; --paper: #faf7f2; --paper-panel: #f1ece2; --line: #d8cfc0;
+    --accent: #3c6e59; --danger: #a4432f;
+    font-family: 'Inter', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --ink:#ece7dd; --paper:#14201d; --paper-panel:#1c2b28; --line:#34433d; --accent:#7fb89c; --danger:#d98a76; }
+  }
+  :root[data-theme="dark"] { --ink:#ece7dd; --paper:#14201d; --paper-panel:#1c2b28; --line:#34433d; --accent:#7fb89c; --danger:#d98a76; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin:0; background:var(--paper); color:var(--ink); padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  .topbar { max-width:1400px; margin:0 auto; padding:32px 24px 0; }
+  h1 { font-family:'Inter',sans-serif; font-weight:600; font-size:12px; margin:0 0 4px; }
+  .subhead { opacity:0.6; margin:0 0 24px; font-size:12px; }
+  .split { max-width:1400px; margin:0 auto; padding:0 24px 80px; display:grid; grid-template-columns:minmax(300px,420px) 1fr; gap:28px; align-items:start; }
+  @media (max-width:900px) { .split { grid-template-columns:1fr; } }
+
+  .sheet { background:var(--paper-panel); border:1px solid var(--line); border-radius:4px; padding:24px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .field label { font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.55; }
+  input, textarea, select { font-family:inherit; font-size:12px; background:var(--paper); border:1px solid var(--line); border-radius:3px; padding:8px 10px; color:var(--ink); width:100%; }
+  input:focus, textarea:focus, select:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  .block-title { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 10px; border-bottom:1px solid var(--line); padding-bottom:7px; opacity:0.8; }
+  .block-title:first-child { margin-top:0; }
+  textarea { min-height:50px; resize:vertical; }
+  .item-row { border:1px solid var(--line); border-radius:3px; padding:8px; margin-bottom:8px; background:var(--paper); }
+  .item-row input.desc-input { margin-bottom:6px; }
+  .qty-rate { display:grid; grid-template-columns:1fr 1fr auto; gap:6px; align-items:center; }
+  .qty-rate span { font-size:12px; opacity:0.6; white-space:nowrap; }
+  .rm-btn { background:none; border:none; color:var(--danger); cursor:pointer; font-size:18px; padding:2px 6px; line-height:1; }
+  .saved-tools { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; margin-bottom:12px; }
+  .saved-tools .field { margin-bottom:0; }
+  .add-row { background:none; border:1px dashed var(--line); color:var(--ink); border-radius:3px; padding:8px 14px; cursor:pointer; font-size:12px; opacity:0.75; width:100%; }
+  .add-row:hover { opacity:1; border-color:var(--accent); }
+  .save-status { font-size:12px; opacity:0.6; margin:-4px 0 10px; min-height:14px; }
+  .actions { display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
+  button.primary { background:var(--accent); color:var(--paper); border:none; border-radius:3px; padding:11px 20px; font-size:12px; cursor:pointer; font-family:inherit; }
+  button.secondary { background:none; border:1px solid var(--line); color:var(--ink); border-radius:3px; padding:11px 20px; font-size:12px; cursor:pointer; font-family:inherit; }
+
+  /* ---- Letter live preview ---- */
+  .preview-pane { position:sticky; top:24px; align-self:start; }
+  .preview-label { font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.5; margin:0 0 10px 2px; }
+  .page-scaler { position:relative; }
+  .page-native {
+    width:8.5in; height:11in;
+    background:#fff; position:relative; overflow:hidden;
+    box-shadow:0 12px 30px rgba(0,0,0,0.18);
+    transform-origin: top left;
+  }
+  .page-content {
+    position:absolute; inset:0; padding:1.15in 0.75in 0.85in; box-sizing:border-box;
+    font-family:'Space Mono', monospace; color:#161616; font-size:12px;
+    transform-origin: top left;
+    display:flex; flex-direction:column;
+  }
+  .p-head { display:flex; justify-content:space-between; gap:16px; margin-bottom:16px; }
+  .p-label { font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
+  .p-accent { color:#d9602f; }
+  .p-bold { font-weight:700; font-size:12px; margin-top:4px; }
+  .p-party-label { font-size:18px; }
+  .p-party-name { font-size:18px; }
+  .p-addr { font-size:12px; line-height:1.5; white-space:pre-line; margin-top:2px; }
+  .p-meta { text-align:right; font-size:12px; }
+  .p-meta .p-val { margin-bottom:8px; }
+  .dash { border-bottom:1.5px dashed #999; margin:10px 0; }
+  .p-table-head { display:grid; grid-template-columns:1fr 70px 50px 80px; font-size:12px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding-bottom:8px; }
+  .p-table-head span:not(:first-child) { text-align:right; }
+  .p-item { display:grid; grid-template-columns:1fr 70px 50px 80px; font-size:12px; padding:8px 0; border-bottom:1px dashed #ccc; }
+  .p-item span:not(:first-child) { text-align:right; }
+  .p-sum-row { display:flex; justify-content:space-between; font-size:12px; font-weight:700; padding:8px 0; border-bottom:1px dashed #ccc; }
+  .p-total-row { display:flex; justify-content:space-between; font-size:18px; font-weight:700; padding:10px 0; color:#d9602f; }
+  .p-note { font-size:12px; line-height:1.5; margin:10px 0 18px; white-space:pre-line; }
+  .p-note-label { font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
+  .p-bottom-cols { display:flex; justify-content:space-between; gap:24px; }
+  .p-from, .p-payment { font-size:12px; line-height:1.9; }
+  .p-from .p-bold { margin-top:4px; }
+  .p-wordmark { font-family:'Space Mono',monospace; font-weight:700; color:#d9602f; font-size:88px; letter-spacing:0.01em; text-align:left; margin-top:28px; }
+  .p-footer { font-size:12px; text-align:center; display:flex; justify-content:center; gap:18px; flex-wrap:wrap; opacity:0.85; margin-top:16px; }
+
+  @media (max-width:900px) { .preview-pane { position:static; } }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .no-print { display:none !important; }
+    .topbar, .split { max-width:none; padding:0; display:block; }
+    .page-scaler { transform:none !important; }
+    .page-native { box-shadow:none; }
+    @page { size:Letter; margin:0; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar no-print">
+  <h1>Invoice Generator</h1>
+  <p class="subhead">Type on the left, watch the Letter invoice update on the right.</p>
+</div>
+
+<div class="split">
+  <div class="sheet no-print">
+    <p class="block-title" style="margin-top:0;">Bill from</p>
+    <div class="field"><label>Your business name</label><input id="fromName" value="VISUALS BY ESSI" oninput="renderPreview()"></div>
+    <div class="field"><label>Your address</label><textarea id="fromDetails" oninput="renderPreview()">GONZAGA, CAGAYAN 3513, PHILIPPINES</textarea></div>
+    <div class="field"><label>Your email</label><input id="fromEmail" value="visualsbyessi@gmail.com" oninput="renderPreview()"></div>
+
+    <p class="block-title">Bill to</p>
+    <div class="saved-tools">
+      <div class="field"><label>Saved clients</label><select id="clientSelect" onchange="selectClient()"><option value="">Choose client</option></select></div>
+      <button class="secondary" type="button" onclick="addClient()">Add client</button>
+    </div>
+    <div class="save-status" id="clientStatus"></div>
+    <div class="field"><label>Client name</label><input id="toName" placeholder="Client name" oninput="renderPreview()"></div>
+    <div class="field"><label>Client address</label><textarea id="toDetails" placeholder="123 Anywhere St., Any City, ST 12345" oninput="renderPreview()"></textarea></div>
+    <div class="field"><label>Client email</label><input id="toEmail" placeholder="client@email.com" oninput="renderPreview()"></div>
+
+    <p class="block-title">Invoice details</p>
+    <div class="row2">
+      <div class="field"><label>Invoice no.</label><input id="invNumber" value="INV05" oninput="renderPreview()"></div>
+      <div class="field"><label>Currency</label>
+        <select id="currency" onchange="renderPreview()">
+          <option value="₱">PHP ₱</option><option value="$" selected>USD $</option><option value="€">EUR €</option><option value="£">GBP £</option>
+        </select>
+      </div>
+      <div class="field"><label>Date issued</label><input id="invDate" type="date" oninput="renderPreview()"></div>
+    </div>
+    <div class="field"><label>Discount (optional)</label><input id="discount" type="number" value="0" min="0" oninput="renderPreview()"></div>
+    <div class="field"><label>Note (optional)</label><textarea id="invoiceNote" placeholder="Please pay within 5 days of receiving this invoice." oninput="renderPreview()"></textarea></div>
+
+    <p class="block-title">Items</p>
+    <div id="itemsBody"></div>
+    <button class="add-row" onclick="addRow()">+ Add item</button>
+
+    <p class="block-title">Payment details</p>
+    <div class="saved-tools">
+      <div class="field"><label>Saved bank accounts</label><select id="bankSelect" onchange="selectBank()"><option value="">Choose bank account</option></select></div>
+      <button class="secondary" type="button" onclick="addBank()">Add bank</button>
+    </div>
+    <div class="save-status" id="bankStatus"></div>
+    <div class="field"><label>Bank name</label><input id="bankName" placeholder="Bank of Arrowai" oninput="renderPreview()"></div>
+    <div class="field"><label>Account number</label><input id="bankAccount" placeholder="123-456-7890" oninput="renderPreview()"></div>
+    <div class="field"><label>Account name</label><input id="bankAccountName" placeholder="Arrowai Contractor" oninput="renderPreview()"></div>
+    <div class="field"><label>Home address</label><input id="bankHomeAddress" placeholder="123 Anywhere St., Any City" oninput="renderPreview()"></div>
+    <div class="field"><label>SWIFT address</label><input id="bankSwift" placeholder="ABCDEF12" oninput="renderPreview()"></div>
+    <div class="field"><label>Bank code</label><input id="bankCode" placeholder="001" oninput="renderPreview()"></div>
+
+    <p class="block-title">Footer contact</p>
+    <div class="field"><label>Phone</label><input id="phone" placeholder="+123-456-7890" oninput="renderPreview()"></div>
+    <div class="field"><label>Website</label><input id="website" placeholder="reallygreatsite.com" oninput="renderPreview()"></div>
+    <div class="field"><label>Address</label><input id="address" placeholder="123 Anywhere St., Any City" oninput="renderPreview()"></div>
+
+    <div class="actions">
+      <button class="primary" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+  </div>
+
+  <div class="preview-pane">
+    <p class="preview-label no-print">Live preview — Letter, one page</p>
+    <div class="page-scaler" id="pageScaler">
+      <div class="page-native" id="pageNative">
+        <div class="page-content" id="pageContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let rowId = 0;
+let selectedClientName = '';
+let selectedBankKey = '';
+
+function addRow(desc = '', qty = 1, rate = 0) {
+  const container = document.getElementById('itemsBody');
+  const id = 'row' + (rowId++);
+  const div = document.createElement('div');
+  div.className = 'item-row';
+  div.id = id;
+  div.innerHTML = `
+    <input type="text" class="desc-input" value="${desc}" placeholder="Description of work" oninput="renderPreview()">
+    <div class="qty-rate">
+      <div><span>Price</span> <input type="number" class="rate-input" value="${rate}" min="0" step="0.01" oninput="renderPreview()"></div>
+      <div><span>Qty</span> <input type="number" class="qty-input" value="${qty}" min="0" step="1" oninput="renderPreview()"></div>
+      <button class="rm-btn no-print" onclick="document.getElementById('${id}').remove(); renderPreview();">×</button>
+    </div>`;
+  container.appendChild(div);
+  renderPreview();
+}
+
+function esc(str) { return (str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtMoney(cur, n) { return cur + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${mm}/${dd}/${d.getFullYear()}`;
+}
+
+function getClients() {
+  try { return JSON.parse(localStorage.getItem('invoiceClients') || '[]'); } catch (e) { return []; }
+}
+
+function saveClients(clients) {
+  localStorage.setItem('invoiceClients', JSON.stringify(clients));
+}
+
+function renderClientOptions(selectedName = '') {
+  const select = document.getElementById('clientSelect');
+  const clients = getClients().sort((a, b) => a.name.localeCompare(b.name));
+  selectedClientName = clients.some(client => client.name === selectedName) ? selectedName : '';
+  select.innerHTML = '<option value="">Choose client</option>' + clients.map(client => {
+    const selected = client.name === selectedName ? ' selected' : '';
+    return `<option value="${esc(client.name)}"${selected}>${esc(client.name)}</option>`;
+  }).join('');
+}
+
+function setClientStatus(message) {
+  const status = document.getElementById('clientStatus');
+  status.textContent = message;
+  if (message) window.setTimeout(() => { if (status.textContent === message) status.textContent = ''; }, 2500);
+}
+
+function selectClient() {
+  const selectedName = document.getElementById('clientSelect').value;
+  const client = getClients().find(item => item.name === selectedName);
+  selectedClientName = selectedName;
+  if (!client) return;
+  document.getElementById('toName').value = client.name || '';
+  document.getElementById('toDetails').value = client.address || '';
+  document.getElementById('toEmail').value = client.email || '';
+  renderPreview();
+}
+
+function addClient() {
+  const name = document.getElementById('toName').value.trim();
+  const address = document.getElementById('toDetails').value.trim();
+  const email = document.getElementById('toEmail').value.trim();
+  if (!name) {
+    setClientStatus('Add a client name first.');
+    return;
+  }
+
+  const clients = getClients();
+  let existingIndex = clients.findIndex(client => client.name === selectedClientName);
+  if (existingIndex < 0) existingIndex = clients.findIndex(client => client.name.toLowerCase() === name.toLowerCase());
+  const client = { name, address, email };
+  if (existingIndex >= 0) {
+    clients[existingIndex] = client;
+    setClientStatus('Client updated.');
+  } else {
+    clients.push(client);
+    setClientStatus('Client saved.');
+  }
+
+  saveClients(clients);
+  selectedClientName = name;
+  renderClientOptions(name);
+}
+
+function getBanks() {
+  try { return JSON.parse(localStorage.getItem('invoiceBanks') || '[]'); } catch (e) { return []; }
+}
+
+function saveBanks(banks) {
+  localStorage.setItem('invoiceBanks', JSON.stringify(banks));
+}
+
+function bankKey(bank) {
+  return `${bank.bankName || ''} | ${bank.accountName || ''} | ${bank.accountNumber || ''} | ${bank.homeAddress || ''} | ${bank.swift || ''} | ${bank.bankCode || ''}`;
+}
+
+function renderBankOptions(selectedKey = '') {
+  const select = document.getElementById('bankSelect');
+  const banks = getBanks().sort((a, b) => bankKey(a).localeCompare(bankKey(b)));
+  selectedBankKey = banks.some(bank => bankKey(bank) === selectedKey) ? selectedKey : '';
+  select.innerHTML = '<option value="">Choose bank account</option>' + banks.map(bank => {
+    const key = bankKey(bank);
+    const selected = key === selectedKey ? ' selected' : '';
+    const label = bank.accountName ? `${bank.bankName} - ${bank.accountName}` : bank.bankName;
+    return `<option value="${esc(key)}"${selected}>${esc(label || key)}</option>`;
+  }).join('');
+}
+
+function setBankStatus(message) {
+  const status = document.getElementById('bankStatus');
+  status.textContent = message;
+  if (message) window.setTimeout(() => { if (status.textContent === message) status.textContent = ''; }, 2500);
+}
+
+function selectBank() {
+  const selectedKey = document.getElementById('bankSelect').value;
+  const bank = getBanks().find(item => bankKey(item) === selectedKey);
+  selectedBankKey = selectedKey;
+  if (!bank) return;
+  document.getElementById('bankName').value = bank.bankName || '';
+  document.getElementById('bankAccount').value = bank.accountNumber || '';
+  document.getElementById('bankAccountName').value = bank.accountName || '';
+  document.getElementById('bankHomeAddress').value = bank.homeAddress || '';
+  document.getElementById('bankSwift').value = bank.swift || '';
+  document.getElementById('bankCode').value = bank.bankCode || '';
+  renderPreview();
+}
+
+function addBank() {
+  const bankName = document.getElementById('bankName').value.trim();
+  const accountNumber = document.getElementById('bankAccount').value.trim();
+  const accountName = document.getElementById('bankAccountName').value.trim();
+  const homeAddress = document.getElementById('bankHomeAddress').value.trim();
+  const swift = document.getElementById('bankSwift').value.trim();
+  const bankCode = document.getElementById('bankCode').value.trim();
+  if (!bankName && !accountNumber && !accountName && !homeAddress && !swift && !bankCode) {
+    setBankStatus('Add bank details first.');
+    return;
+  }
+
+  const banks = getBanks();
+  const bank = { bankName, accountNumber, accountName, homeAddress, swift, bankCode };
+  const key = bankKey(bank).toLowerCase();
+  let existingIndex = banks.findIndex(item => bankKey(item) === selectedBankKey);
+  if (existingIndex < 0) existingIndex = banks.findIndex(item => bankKey(item).toLowerCase() === key);
+  if (existingIndex >= 0) {
+    banks[existingIndex] = bank;
+    setBankStatus('Bank account updated.');
+  } else {
+    banks.push(bank);
+    setBankStatus('Bank account saved.');
+  }
+
+  saveBanks(banks);
+  selectedBankKey = bankKey(bank);
+  renderBankOptions(bankKey(bank));
+}
+
+function renderPreview() {
+  const cur = document.getElementById('currency').value;
+  const fromName = document.getElementById('fromName').value;
+  const fromDetails = document.getElementById('fromDetails').value;
+  const fromEmail = document.getElementById('fromEmail').value;
+  const toName = document.getElementById('toName').value;
+  const toDetails = document.getElementById('toDetails').value;
+  const toEmail = document.getElementById('toEmail').value;
+  const invNumber = document.getElementById('invNumber').value;
+  const invDate = document.getElementById('invDate').value;
+  const discount = parseFloat(document.getElementById('discount').value) || 0;
+  const invoiceNote = document.getElementById('invoiceNote').value;
+  const bankName = document.getElementById('bankName').value;
+  const bankAccount = document.getElementById('bankAccount').value;
+  const bankAccountName = document.getElementById('bankAccountName').value;
+  const bankHomeAddress = document.getElementById('bankHomeAddress').value;
+  const bankSwift = document.getElementById('bankSwift').value;
+  const bankCode = document.getElementById('bankCode').value;
+  const phone = document.getElementById('phone').value;
+  const website = document.getElementById('website').value;
+  const address = document.getElementById('address').value;
+
+  let subtotal = 0, rows = '';
+  document.querySelectorAll('#itemsBody .item-row').forEach(row => {
+    const desc = row.querySelector('.desc-input').value;
+    const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+    const rate = parseFloat(row.querySelector('.rate-input').value) || 0;
+    const amt = qty * rate;
+    subtotal += amt;
+    rows += `<div class="p-item"><span>${esc(desc) || '—'}</span><span>${fmtMoney(cur,rate)}</span><span>${qty}</span><span>${fmtMoney(cur,amt)}</span></div>`;
+  });
+  const total = subtotal - discount;
+
+  document.getElementById('pageContent').innerHTML = `
+    <div id="pMain">
+      <div class="p-head">
+        <div>
+          <div class="p-label p-accent p-party-label">Bill to</div>
+          <div class="p-bold p-party-name">${esc(toName) || 'Client name'}</div>
+          <div class="p-addr">${esc(toDetails)}${toEmail ? '\n' + esc(toEmail) : ''}</div>
+        </div>
+        <div class="p-meta">
+          <div class="p-label">Invoice no</div>
+          <div class="p-val">${esc(invNumber)}</div>
+          <div class="p-label">Date issued</div>
+          <div class="p-val">${fmtDate(invDate)}</div>
+        </div>
+      </div>
+      <div class="dash"></div>
+      <div class="p-table-head"><span>Description of work</span><span>Price</span><span>Qty</span><span>Total</span></div>
+      <div class="dash" style="margin-top:0;"></div>
+      ${rows || '<div class="p-item" style="opacity:0.5;"><span>No items yet</span><span></span><span></span><span></span></div>'}
+      <div class="p-sum-row"><span>Subtotal</span><span>${fmtMoney(cur,subtotal)}</span></div>
+      ${discount ? `<div class="p-sum-row"><span>Discount</span><span>-${fmtMoney(cur,discount)}</span></div>` : ''}
+      <div class="dash" style="margin:2px 0;"></div>
+      <div class="p-total-row"><span>Total due</span><span>${fmtMoney(cur,total)}</span></div>
+      <div class="dash" style="margin-top:0;"></div>
+      ${invoiceNote ? `<div class="p-note"><span class="p-note-label">Note - </span>${esc(invoiceNote)}</div>` : ''}
+    </div>
+    <div id="pBottom">
+      <div class="p-bottom-cols">
+        <div class="p-from">
+          <div class="p-label p-accent p-party-label">Bill from</div>
+          <div class="p-bold p-party-name">${esc(fromName) || '—'}</div>
+          <div class="p-addr">${esc(fromDetails)}${fromEmail ? '\n' + esc(fromEmail) : ''}</div>
+        </div>
+        <div class="p-payment">
+          <div class="p-label">Payment details</div>
+          <div>Bank name: ${esc(bankName) || '—'}</div>
+          <div>Account number: ${esc(bankAccount) || '—'}</div>
+          <div>Account name: ${esc(bankAccountName) || '—'}</div>
+          ${bankHomeAddress ? `<div>Home address: ${esc(bankHomeAddress)}</div>` : ''}
+          ${bankSwift ? `<div>SWIFT address: ${esc(bankSwift)}</div>` : ''}
+          ${bankCode ? `<div>Bank code: ${esc(bankCode)}</div>` : ''}
+        </div>
+      </div>
+      <div class="p-wordmark">INVOICE</div>
+      <div class="p-footer">${[phone && '• '+esc(phone), website && '• '+esc(website), address && '• '+esc(address)].filter(Boolean).join('   ')}</div>
+    </div>
+  `;
+  fitContentToPage();
+}
+
+function fitContentToPage() {
+  const page = document.getElementById('pageContent');
+  const main = document.getElementById('pMain');
+  const bottom = document.getElementById('pBottom');
+  page.style.transform = 'none';
+  page.style.width = '100%';
+  bottom.style.marginTop = '0px';
+
+  const cs = getComputedStyle(page);
+  const avail = page.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const needed = main.offsetHeight + bottom.offsetHeight;
+
+  if (needed <= avail) {
+    bottom.style.marginTop = (avail - needed) + 'px';
+  } else {
+    const scale = avail / needed;
+    page.style.transform = `scale(${scale})`;
+    page.style.width = `${100/scale}%`;
+  }
+}
+
+function fitPageToContainer() {
+  const scaler = document.getElementById('pageScaler');
+  const native = document.getElementById('pageNative');
+  const available = scaler.parentElement.clientWidth;
+  const k = Math.min(1, available / native.offsetWidth);
+  native.style.transform = k < 1 ? `scale(${k})` : 'none';
+  scaler.style.height = (native.offsetHeight * k) + 'px';
+}
+
+window.addEventListener('resize', fitPageToContainer);
+
+(function init() {
+  renderClientOptions();
+  renderBankOptions();
+  document.getElementById('invDate').value = new Date().toISOString().slice(0,10);
+  addRow('Video Editing', 1, 0);
+  fitPageToContainer();
+})();
+</script>
+</body>
+</html>
