@@ -9,53 +9,54 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Anton&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #1c2b2a; --paper: #faf7f2; --paper-panel: #f1ece2; --line: #d8cfc0;
-    --accent: #3c6e59; --danger: #a4432f; --preview-ink:#161616; --preview-accent:#d9602f;
-    font-family: 'Inter', sans-serif;
+    --ink: #171717; --paper: #ececec; --paper-panel: #ffffff; --line: #e6e6e6;
+    --accent: #111111; --danger: #a4432f; --preview-ink:#161616; --preview-accent:#d9602f;
+    font-family: 'Space Mono', monospace;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --ink:#ece7dd; --paper:#14201d; --paper-panel:#1c2b28; --line:#34433d; --accent:#7fb89c; --danger:#d98a76; }
+  :root[data-theme="night"] {
+    --ink:#f5f5f5; --paper:#1b1b1b; --paper-panel:#101010; --line:#303030; --accent:#ffffff;
   }
-  :root[data-theme="dark"] { --ink:#ece7dd; --paper:#14201d; --paper-panel:#1c2b28; --line:#34433d; --accent:#7fb89c; --danger:#d98a76; }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body { margin:0; background:var(--paper); color:var(--ink); padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
-  .topbar { max-width:1400px; margin:0 auto; padding:32px 24px 0; }
-  h1 { font-family:'Inter',sans-serif; font-weight:600; font-size:12px; margin:0 0 4px; }
-  .subhead { opacity:0.6; margin:0 0 24px; font-size:12px; }
-  .split { max-width:1400px; margin:0 auto; padding:0 24px 80px; display:grid; grid-template-columns:minmax(300px,420px) 1fr; gap:28px; align-items:start; }
-  @media (max-width:900px) { .split { grid-template-columns:1fr; } }
+  .topbar { position:fixed; inset:0 auto auto 0; width:360px; height:64px; z-index:5; background:var(--paper-panel); border-right:1px solid var(--line); border-bottom:1px solid var(--line); padding:22px 28px 0; }
+  h1 { font-family:'Space Mono',monospace; font-weight:700; font-size:18px; margin:0; letter-spacing:0; }
+  .subhead { display:none; }
+  .theme-toggle { position:fixed; top:16px; right:18px; z-index:8; display:flex; align-items:center; gap:8px; background:var(--paper-panel); color:var(--ink); border:1px solid var(--line); border-radius:999px; padding:7px 10px; font-family:inherit; font-size:12px; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.08); }
+  .theme-toggle span:first-child { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; background:var(--ink); color:var(--paper-panel); line-height:1; }
+  .split { min-height:100vh; padding:64px 0 0; display:grid; grid-template-columns:360px minmax(0,1fr); gap:0; align-items:start; }
+  @media (max-width:900px) { .topbar { position:static; width:auto; height:auto; padding:22px 20px; border-right:0; } .split { grid-template-columns:1fr; padding:0; } }
 
-  .sheet { background:var(--paper-panel); border:1px solid var(--line); border-radius:4px; padding:24px; }
+  .sheet { background:var(--paper-panel); border:0; border-right:1px solid var(--line); border-radius:0; padding:18px 28px 28px; height:calc(100vh - 64px); overflow:auto; }
   .field { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
   .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .field label { font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.55; }
-  input, textarea, select { font-family:inherit; font-size:12px; background:var(--paper); border:1px solid var(--line); border-radius:3px; padding:8px 10px; color:var(--ink); width:100%; }
-  input:focus, textarea:focus, select:focus { outline:2px solid var(--accent); outline-offset:1px; }
-  .block-title { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 10px; border-bottom:1px solid var(--line); padding-bottom:7px; opacity:0.8; }
+  .field label { font-size:12px; text-transform:none; letter-spacing:0; opacity:1; color:var(--ink); font-weight:700; }
+  input, textarea, select { font-family:inherit; font-size:12px; background:color-mix(in srgb, var(--paper-panel) 94%, var(--ink) 6%); border:1px solid var(--line); border-radius:8px; padding:11px 12px; color:var(--ink); width:100%; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.01); }
+  input:focus, textarea:focus, select:focus { outline:2px solid var(--accent); outline-offset:1px; background:var(--paper-panel); }
+  .block-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; margin:26px 0 14px; border-bottom:0; padding-bottom:0; opacity:1; color:var(--ink); }
   .block-title:first-child { margin-top:0; }
-  textarea { min-height:50px; resize:vertical; }
-  .item-row { border:1px solid var(--line); border-radius:3px; padding:8px; margin-bottom:8px; background:var(--paper); }
-  .item-row input.desc-input { margin-bottom:6px; }
+  textarea { min-height:62px; resize:vertical; }
+  .item-row { border:0; border-radius:0; padding:0; margin-bottom:8px; background:transparent; }
+  .item-row input.desc-input { margin-bottom:8px; }
   .qty-rate { display:grid; grid-template-columns:1fr 1fr auto; gap:6px; align-items:center; }
   .qty-rate span { font-size:12px; opacity:0.6; white-space:nowrap; }
   .rm-btn { background:none; border:none; color:var(--danger); cursor:pointer; font-size:18px; padding:2px 6px; line-height:1; }
-  .saved-tools { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; margin-bottom:12px; }
+  .saved-tools { display:grid; grid-template-columns:1fr; gap:8px; align-items:end; margin-bottom:12px; }
   .saved-tools .field { margin-bottom:0; }
-  .add-row { background:none; border:1px dashed var(--line); color:var(--ink); border-radius:3px; padding:8px 14px; cursor:pointer; font-size:12px; opacity:0.75; width:100%; }
+  .add-row { background:var(--paper-panel); border:1px dashed var(--line); color:var(--ink); border-radius:8px; padding:11px 14px; cursor:pointer; font-size:12px; opacity:0.75; width:100%; font-family:inherit; }
   .add-row:hover { opacity:1; border-color:var(--accent); }
   .save-status { font-size:12px; opacity:0.6; margin:-4px 0 10px; min-height:14px; }
-  .actions { display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
-  button.primary { background:var(--accent); color:var(--paper); border:none; border-radius:3px; padding:11px 20px; font-size:12px; cursor:pointer; font-family:inherit; }
-  button.secondary { background:none; border:1px solid var(--line); color:var(--ink); border-radius:3px; padding:11px 20px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .actions { position:sticky; bottom:-28px; background:var(--paper-panel); border-top:1px solid var(--line); margin:26px -28px -28px; padding:18px 28px 28px; }
+  button.primary { background:var(--ink); color:var(--paper-panel); border:none; border-radius:8px; padding:16px 20px; font-size:12px; cursor:pointer; font-family:inherit; font-weight:700; width:100%; }
+  button.secondary { background:var(--paper-panel); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:11px 14px; font-size:12px; cursor:pointer; font-family:inherit; }
 
-  .preview-pane { position:sticky; top:24px; align-self:start; }
-  .preview-label { font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.5; margin:0 0 10px 2px; }
+  .preview-pane { position:sticky; top:64px; align-self:start; min-height:calc(100vh - 64px); background:#ececec; padding:34px 44px; display:flex; flex-direction:column; align-items:center; overflow:hidden; }
+  .preview-label { display:none; }
   .page-scaler { position:relative; }
   .page-native {
     width:8.5in; height:11in;
     background:#fff; position:relative; overflow:hidden;
-    box-shadow:0 12px 30px rgba(0,0,0,0.18);
+    box-shadow:0 2px 18px rgba(0,0,0,0.10);
     transform-origin: top left;
   }
   .page-content {
@@ -88,11 +89,13 @@
   .p-from .p-bold { margin-top:4px; }
   .p-wordmark { font-family:var(--preview-font, 'Space Mono', monospace); font-weight:700; color:var(--preview-accent); font-size:88px; letter-spacing:0.01em; text-align:left; margin-top:28px; }
   .p-footer { font-size:12px; text-align:center; display:flex; justify-content:center; gap:18px; flex-wrap:wrap; opacity:0.85; margin-top:16px; }
+
   .page-content.style-modern .dash { border-bottom:1px solid var(--preview-ink); opacity:0.35; }
   .page-content.style-modern .p-table-head { background:var(--preview-accent); color:#fff; padding:8px 10px; }
   .page-content.style-modern .p-item { border-bottom:1px solid rgba(0,0,0,0.16); padding:10px; }
   .page-content.style-modern .p-total-row { background:var(--preview-accent); color:#fff; padding:12px 14px; margin-top:8px; }
   .page-content.style-modern .p-wordmark { text-align:right; font-size:76px; }
+
   .page-content.style-editorial { background:#fbf3e7; padding-top:0.95in; }
   .page-content.style-editorial .p-head { border-top:6px solid var(--preview-accent); padding-top:18px; }
   .page-content.style-editorial .dash { border-bottom:1px solid var(--preview-accent); opacity:0.55; }
@@ -101,7 +104,33 @@
   .page-content.style-editorial .p-total-row { font-size:22px; border-bottom:3px solid var(--preview-accent); }
   .page-content.style-editorial .p-wordmark { font-size:96px; letter-spacing:0.04em; opacity:0.92; }
 
-  @media (max-width:900px) { .preview-pane { position:static; } }
+  .page-content.style-minimal { padding:0.78in 0.68in 0.72in; background:#fff; }
+  .page-content.style-minimal .minimal-top { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; margin-bottom:0.78in; }
+  .page-content.style-minimal .minimal-brand { font-size:30px; line-height:1.1; font-weight:700; margin-bottom:12px; }
+  .page-content.style-minimal .minimal-contact,
+  .page-content.style-minimal .minimal-muted { color:#8d8d8d; line-height:1.55; white-space:pre-line; }
+  .page-content.style-minimal .minimal-invoice { text-align:right; }
+  .page-content.style-minimal .minimal-title { font-size:34px; line-height:1; font-weight:700; letter-spacing:0.01em; text-transform:uppercase; }
+  .page-content.style-minimal .minimal-number { color:#8d8d8d; margin-top:8px; }
+  .page-content.style-minimal .minimal-mid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:0.72in; }
+  .page-content.style-minimal .minimal-date { text-align:right; align-self:start; }
+  .page-content.style-minimal .p-label { color:var(--preview-ink); font-size:12px; letter-spacing:0.18em; }
+  .page-content.style-minimal .p-party-name { font-size:17px; margin:14px 0 8px; }
+  .page-content.style-minimal .p-table-head { grid-template-columns:1fr 80px 90px 100px; border-bottom:2px solid var(--preview-ink); padding-bottom:12px; letter-spacing:0.08em; }
+  .page-content.style-minimal .p-item { grid-template-columns:1fr 80px 90px 100px; border-bottom:1px solid #ececec; padding:18px 0; font-size:15px; }
+  .page-content.style-minimal .p-item span:nth-child(2) { color:#888; }
+  .page-content.style-minimal .minimal-summary { width:3.25in; margin:0.36in 0 0 auto; }
+  .page-content.style-minimal .p-sum-row { color:#888; border-bottom:1px solid #ececec; padding:10px 0; font-weight:400; }
+  .page-content.style-minimal .p-total-row { color:var(--preview-ink); font-size:26px; padding:16px 0 0; }
+  .page-content.style-minimal .p-total-row span:first-child { font-size:18px; align-self:center; }
+  .page-content.style-minimal .minimal-bottom-rule { border-bottom:1px solid #ececec; margin-bottom:0.35in; }
+  .page-content.style-minimal .p-payment { max-width:4.2in; line-height:1.9; }
+  .page-content.style-minimal .minimal-pay-row { display:grid; grid-template-columns:1.25in 1fr; gap:10px; }
+  .page-content.style-minimal .minimal-pay-row span:first-child { color:#888; }
+  .page-content.style-minimal .p-note { color:#666; margin:18px 0 0; }
+  .page-content.style-minimal .p-logo { margin:0 0 16px auto; max-width:96px; max-height:48px; }
+
+  @media (max-width:900px) { .sheet { height:auto; overflow:visible; border-right:0; border-bottom:1px solid var(--line); } .preview-pane { position:static; min-height:0; padding:24px 12px; } .actions { bottom:0; } }
 
   @media print {
     body { background:#fff; padding:0; }
@@ -114,6 +143,9 @@
 </style>
 </head>
 <body>
+<button class="theme-toggle no-print" type="button" onclick="toggleTheme()" aria-label="Switch day and night mode">
+  <span id="themeIcon">☀</span><strong id="themeLabel">Day</strong>
+</button>
 <div class="topbar no-print">
   <h1>Invoice Generator by Essi</h1>
   <p class="subhead">Type on the left, watch the Letter invoice update on the right.</p>
@@ -183,6 +215,7 @@
         <option value="classic" selected>Classic</option>
         <option value="modern">Modern</option>
         <option value="editorial">Editorial</option>
+        <option value="minimal">Minimal</option>
       </select>
     </div>
     <div class="field"><label>Invoice font</label>
@@ -200,7 +233,7 @@
     </div>
 
     <div class="actions">
-      <button class="primary" onclick="window.print()">Print / Save as PDF</button>
+      <button class="primary" onclick="window.print()">Download PDF</button>
     </div>
   </div>
 
@@ -253,6 +286,18 @@ function removeLogo() {
   logoDataUrl = '';
   document.getElementById('logoInput').value = '';
   renderPreview();
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  document.getElementById('themeIcon').textContent = theme === 'night' ? '☾' : '☀';
+  document.getElementById('themeLabel').textContent = theme === 'night' ? 'Night' : 'Day';
+  localStorage.setItem('invoiceTheme', theme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme === 'night' ? 'night' : 'day';
+  applyTheme(current === 'night' ? 'day' : 'night');
 }
 
 function esc(str) { return (str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -486,6 +531,7 @@ function renderPreview() {
   const phone = document.getElementById('phone').value;
   const website = document.getElementById('website').value;
   const address = document.getElementById('address').value;
+  const selectedStyle = document.getElementById('invoiceStyle').value;
 
   let subtotal = 0, rows = '';
   document.querySelectorAll('#itemsBody .item-row').forEach(row => {
@@ -494,11 +540,70 @@ function renderPreview() {
     const rate = parseFloat(row.querySelector('.rate-input').value) || 0;
     const amt = qty * rate;
     subtotal += amt;
-    rows += `<div class="p-item"><span>${esc(desc) || '—'}</span><span>${fmtMoney(cur,rate)}</span><span>${qty}</span><span>${fmtMoney(cur,amt)}</span></div>`;
+    if (selectedStyle === 'minimal') {
+      rows += `<div class="p-item"><span>${esc(desc) || '—'}</span><span>${qty}</span><span>${fmtMoney(cur,rate)}</span><span>${fmtMoney(cur,amt)}</span></div>`;
+    } else {
+      rows += `<div class="p-item"><span>${esc(desc) || '—'}</span><span>${fmtMoney(cur,rate)}</span><span>${qty}</span><span>${fmtMoney(cur,amt)}</span></div>`;
+    }
   });
   const total = subtotal - discount;
   const pageContent = document.getElementById('pageContent');
-  pageContent.className = 'page-content style-' + document.getElementById('invoiceStyle').value;
+  pageContent.className = 'page-content style-' + selectedStyle;
+
+  if (selectedStyle === 'minimal') {
+    pageContent.innerHTML = `
+      <div id="pMain">
+        <div class="minimal-top">
+          <div>
+            <div class="minimal-brand">${esc(fromName) || 'Business name'}</div>
+            <div class="minimal-contact">${[fromEmail, fromDetails].filter(Boolean).map(esc).join('\n')}</div>
+          </div>
+          <div class="minimal-invoice">
+            ${logoDataUrl ? `<img class="p-logo" src="${logoDataUrl}" alt="Logo">` : ''}
+            <div class="minimal-title">Invoice</div>
+            <div class="minimal-number">${esc(invNumber)}</div>
+          </div>
+        </div>
+
+        <div class="minimal-mid">
+          <div>
+            <div class="p-label">Bill to</div>
+            <div class="p-bold p-party-name">${esc(toName) || 'Client name'}</div>
+            <div class="minimal-muted">${[toEmail, toDetails].filter(Boolean).map(esc).join('\n')}</div>
+          </div>
+          <div class="minimal-date">
+            <div class="p-label">Issue date</div>
+            <div class="p-bold p-party-name">${fmtDate(invDate)}</div>
+          </div>
+        </div>
+
+        <div class="p-table-head"><span>Description</span><span>Qty</span><span>Rate</span><span>Amount</span></div>
+        ${rows || '<div class="p-item" style="opacity:0.5;"><span>No items yet</span><span></span><span></span><span></span></div>'}
+        <div class="minimal-summary">
+          <div class="p-sum-row"><span>Subtotal</span><span>${fmtMoney(cur,subtotal)}</span></div>
+          ${discount ? `<div class="p-sum-row"><span>Discount</span><span>-${fmtMoney(cur,discount)}</span></div>` : ''}
+          <div class="p-total-row"><span>Total</span><span>${fmtMoney(cur,total)}</span></div>
+          ${invoiceNote ? `<div class="p-note"><span class="p-note-label">Note - </span>${esc(invoiceNote)}</div>` : ''}
+        </div>
+      </div>
+
+      <div id="pBottom">
+        <div class="minimal-bottom-rule"></div>
+        <div class="p-payment">
+          <div class="p-label">Payment details</div>
+          <div class="minimal-pay-row"><span>Bank</span><span>${esc(bankName) || '—'}</span></div>
+          <div class="minimal-pay-row"><span>Account</span><span>${esc(bankAccount) || '—'}</span></div>
+          <div class="minimal-pay-row"><span>Name</span><span>${esc(bankAccountName) || '—'}</span></div>
+          ${bankHomeAddress ? `<div class="minimal-pay-row"><span>Address</span><span>${esc(bankHomeAddress)}</span></div>` : ''}
+          ${bankSwift ? `<div class="minimal-pay-row"><span>SWIFT</span><span>${esc(bankSwift)}</span></div>` : ''}
+          ${bankCode ? `<div class="minimal-pay-row"><span>Bank code</span><span>${esc(bankCode)}</span></div>` : ''}
+        </div>
+        <div class="p-footer">${[phone && esc(phone), website && esc(website), address && esc(address)].filter(Boolean).join('   ')}</div>
+      </div>
+    `;
+    fitContentToPage();
+    return;
+  }
 
   pageContent.innerHTML = `
     <div id="pMain">
@@ -584,6 +689,7 @@ function fitPageToContainer() {
 window.addEventListener('resize', fitPageToContainer);
 
 (function init() {
+  applyTheme(localStorage.getItem('invoiceTheme') || 'day');
   renderBusinessOptions();
   renderClientOptions();
   renderBankOptions();
