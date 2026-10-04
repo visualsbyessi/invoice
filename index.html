@@ -142,8 +142,6 @@
     <div class="field"><label>Client email</label><input id="toEmail" placeholder="client@email.com" oninput="renderPreview()"></div>
 
     <p class="block-title">Invoice details</p>
-    <div class="field"><label>Logo (optional)</label><input id="logoInput" type="file" accept="image/*" onchange="loadLogo(event)"></div>
-    <button class="secondary" type="button" onclick="removeLogo()">Remove logo</button>
     <div class="row2">
       <div class="field"><label>Invoice no.</label><input id="invNumber" value="INV05" oninput="renderPreview()"></div>
       <div class="field"><label>Currency</label>
@@ -178,6 +176,8 @@
     <div class="field"><label>Address</label><input id="address" placeholder="123 Anywhere St., Any City" oninput="renderPreview()"></div>
 
     <p class="block-title">Style</p>
+    <div class="field"><label>Logo (optional)</label><input id="logoInput" type="file" accept="image/*" onchange="loadLogo(event)"></div>
+    <button class="secondary" type="button" onclick="removeLogo()">Remove logo</button>
     <div class="field"><label>Invoice style</label>
       <select id="invoiceStyle" onchange="renderPreview()">
         <option value="classic" selected>Classic</option>
