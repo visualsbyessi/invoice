@@ -133,9 +133,11 @@
   @media print {
     body { background:#fff; padding:0; }
     .no-print { display:none !important; }
-    .topbar, .split { max-width:none; padding:0; display:block; }
-    .page-scaler { transform:none !important; }
-    .page-native { box-shadow:none; }
+    .topbar, .split { max-width:none; width:auto; height:auto; padding:0; display:block; overflow:visible; }
+    .preview-pane { position:static; width:auto; height:auto; min-height:0; padding:0; display:block; background:#fff; overflow:visible; }
+    .page-scaler { width:8.5in !important; height:11in !important; transform:none !important; }
+    .page-native { width:8.5in; height:11in; box-shadow:none; transform:none !important; }
+    .page-content { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     @page { size:Letter; margin:0; }
   }
 </style>
